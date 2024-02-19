@@ -7,11 +7,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 
-    <title>Document</title>
+    <title>Product Page</title>
 </head>
 
 <body>
     <div class="container">
+        <h1>Product Page</h1>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
             data-bs-whatever="@mdo">ADD Products</button>
 
@@ -19,42 +20,56 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="exampleModalLabel">New message</h1>
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">New Product</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form>
+                        <form method="post" action="{{ url_for('add_product') }}">
                             <div class="mb-3">
-                                <label for="buying_price" class="form-label">Name</label>
-                                <input type="name" class="form-control" id="name" name="name"
-                                    required />
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required />
                             </div>
                             <div class="mb-3">
-                                <label for="buying_price" class="form-label">Price</label>
-                                <input type="number" class="form-control" id="price" name="price"
-                                    required />
-                                <div class="mb-3">
-                                    <label for="buying_price" class="form-label">Quantity</label>
-                                    <input type="number" class="form-control" id="quantity" name="quantity"
-                                        required />
-                                </div>
+                                <label for="price" class="form-label">Price</label>
+                                <input type="number" class="form-control" id="price" name="price" required />
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Save Product</button>
                             </div>
                         </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Send message</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <table class="table table-striped" style="width: 100%" id="my_table">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Products Name</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Created At</th>
+                </tr>
+            </thead>
+            <tbody id="products_table">
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.id }}</td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.price }}</td>
+                    <td>{{ product.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
         integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
-        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
-        crossorigin="anonymous"></script>
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
 
 </body>
 
