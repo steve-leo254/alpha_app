@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+
+    <div id="app">
+        {{ message }}
+        <h1>{{ test }}</h1>
+        <h2>{{ t }}</h2>
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">id</th>
+                <th scope="col">name</th>
+                <th scope="col">price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="prod in prods" key=""prod.id>
+                <td>{{prod.id}}</td>
+                <td>{{prod.name}}</td>
+                <td>{{prod.price}}</td>
+              </tr>
+            </tbody>
+        </table>
+        <div class="container">
+            <h1>Product Page</h1>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal"
+                data-bs-whatever="@mdo">ADD Products</button>
+    
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">New Product</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="post">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" v-model="p_name" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Price</label>
+                                    <input type="number" class="form-control" id="price" name="price" v-model="p_price" />
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Save Product</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <table class="table table-striped" style="width: 100%" id="my_table">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Products Name</th>
+                        <th scope="col">Price</th>
+                    
+                    </tr>
+                </thead>
+                <tbody id="products_table">
+                   
+                    <tr v-for="prod in prods" : key="prod.id">
+                        <td>{{ prod.id }}</td>
+                        <td>{{ prod.name }}</td>
+                        <td>{{ prod.price }}</td>
+                       
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+        
+        <div v-if="loading"></div>
+        <ul>
+            <li v-for="prod in prods" :key="prod.id">
+                {{ prod.id }}--{{ prod.name }}--{{ prod.price }}
+            </li>
+        </ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        Vue.createApp({
+            data() {
+                let loading = false
+                let prods = null
+                let product_name = ""
+                let product_price = ""
+
+                return {
+                    loading,
+                    prods,
+                    product_name,
+                    product_price
+                }
+            },
+            methods: {
+                mycalc() {
+                    this.t = this.message + this.test;
+                },
+                my_products() {
+                    this.res.push({ 'id': 1, 'name': 'allan', 'price': 1000000 })
+                    console.log(this.res)
+                },
+                fetch_products() {
+                    this.loading=true
+                    axios.get("http://127.0.0.1:5000/products")
+                        .then((response) => {
+                            console.log("Response from API", response);
+                            this.prods = response.data;
+                            console.log("This is my products:", this.prods);
+                            this.loading = false;
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching data:", error);
+                            this.loading = false;
+                        });
+                },
+                add_product(){
+                    this.loading=true
+                    let new_product ={
+                        name:this.p_name,
+                        price:this.p_price
+                    }
+
+
+                    axios.post("http://127.0.0.1:5000/products",this.new_product)
+                        .then((response) => {
+                            console.log("product add", response:data);
+                            this.new_product={}
+                            // this.product_name='' ;
+                            // this.product_price='';
+                            // this.fetch_products();
+                            console.log("This is my products:", this.prods);
+                            this.loading = false;
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching data:", error);
+                            this.loading = false;
+                        });
+
+                }
+
+            },
+            created() {
+                this.mycalc()
+                this.my_products()
+                this.fetch_products()
+                
+            }
+        }).mount('#app');
+    </script>
+    
+
+</body>
+
+</html>
