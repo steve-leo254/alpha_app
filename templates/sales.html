@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<body>
+    <div id="app">
+        <table class="table">
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                make sale
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+                aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="staticBackdropLabel">sale details</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <select v-model="selected_Product_Id" class="form-select">
+                                <option value="" disabled>Select a product</option>
+                                <option v-for="product in products" :value="product.id">{{ product.name }}</option>
+                            </select>
+                            <input type="number" v-model="quantity" placeholder="Quantity" class="form-control">
+                            <button type="button" class="btn btn-primary" @click="make_sale">Make Sale</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+    </div>
+    <thead>
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">pid</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">created at</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr v-for="sale in sales" :key="sale.id">
+            <td>{{sale.id}}</td>
+            <td>{{sale.pid}}</td>
+            <td>{{sale.quantity}}</td>
+            <td>{{sale.created_at}}</td>
+        </tr>
+
+    </tbody>
+    </table>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+
+        Vue.createApp({
+            data() {
+
+                let loading = false
+                let sales = null
+                let products = null
+                let selected_Product_Id = null
+                let quantity = 0
+
+                return {
+                    loading,
+                    sales,
+                    selected_Product_Id,
+                    quantity,
+                    products
+                }
+            },
+            methods: {
+
+                fetch_sales() {
+                    this.loading = true
+                    axios.get("http://127.0.0.1:5000/sales")
+                        .then((response) => {
+                            console.log("Response from API", response);
+                            this.sales = response.data;
+                            console.log("This is my sales:", this.sales);
+                            this.loading = false;
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching data:", error);
+                            this.loading = false;
+                        });
+                },
+                fetch_products() {
+                    this.loading = true
+                    axios.get("http://127.0.0.1:5000/products")
+                        .then((response) => {
+                            console.log("Response from API", response);
+                            this.products = response.data;
+                            console.log("This is my products:", this.products);
+                            this.loading = false;
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching data:", error);
+                            this.loading = false;
+                        });
+                },
+                make_sale() {
+                    axios.post("http://127.0.0.1:5000/sales",
+                        {
+                            pid: this.selected_Product_Id,
+                            quantity: this.quantity
+                        })
+                        .then((response) => {
+                            console.log("Response from API", response);
+                            this.fetch_sales()
+                            this.close_modal()
+                        })
+                        .catch((error) => {
+                            console.error("Error adding data:", error);
+                            this.loading = false;
+                        });
+
+
+                },
+                
+                close_modal() {
+                    $('#staticBackdrop').modal('hide');
+                }
+
+            },
+            created() {
+                this.fetch_sales()
+                this.fetch_products()
+
+
+
+            }
+        }).mount('#app')
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+        </script>
+</body>
+
+</html>
