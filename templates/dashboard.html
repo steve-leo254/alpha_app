@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Graph</title>
+    <link href="/path/to/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+
+    
+    <div id="app">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="">Shopify </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- Navbar items -->
+                    </ul>
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="products.html">Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="sales.html">Sales</a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" @click="signOut">Logout</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <canvas id="exchangeRateChart" width="400" height="200"></canvas>
+
+        
+        <canvas id="myChart"></canvas>
+        <div id="lineChart"></div> <!-- Changed from canvas to div -->
+
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    loading: false,
+                    exchangeRate: {},
+                    chartRendered: false,
+
+                }
+            },
+            methods: {
+                fetchExchangeRate() {
+                    this.loading = true;
+                    axios.get('http://127.0.0.1:5000/dashboard')
+                        .then((response) => {
+                            console.log("Response from API", response);
+                            this.exchangeRate = response.data['Realtime Currency Exchange Rate'];
+                            console.log("This is my exchange rate:", this.exchangeRate);
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching data:", error);
+                        })
+                        .finally(() => {
+                            this.loading = false;
+                        });
+                }, renderChart() {
+                    axios.get("http://127.0.0.1:5000/dashboard")
+                        .then(response => {
+                            const data = response.data;
+                            const chartData = {
+                                labels: data.saleproduct_data.map(item => item.name),
+                                datasets: [{
+                                    label: 'Sales per product',
+                                    data: data.saleproduct_data.map(item => item.sale_product),
+                                    backgroundColor: [
+                                        'rgba(255, 99, 132, 0.2)',
+                                        'rgba(54, 162, 235, 0.2)',
+                                        'rgba(255, 206, 86, 0.2)',
+                                        'rgba(75, 192, 192, 0.2)',
+                                        'rgba(153, 102, 255, 0.2)',
+                                        'rgba(255, 159, 64, 0.2)'
+                                    ],
+                                    borderColor: [
+                                        'rgba(255, 99, 132, 1)',
+                                        'rgba(54, 162, 235, 1)',
+                                        'rgba(255, 206, 86, 1)',
+                                        'rgba(75, 192, 192, 1)',
+                                        'rgba(153, 102, 255, 1)',
+                                        'rgba(255, 159, 64, 1)'
+                                    ],
+                                    borderWidth: 1
+                                }]
+                            };
+
+                            const myChart = new Chart(document.getElementById('myChart').getContext('2d'), {
+                                type: 'bar',
+                                data: chartData,
+                                options: {
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true
+                                        }
+                                    }
+                                }
+                            });
+                            this.chartRendered = true;
+                        })
+                        .catch(error => {
+                            console.error("Error rendering chart:", error);
+                        });
+                },
+                renderlineChart() {
+                    axios.get("http://127.0.0.1:5000/dashboard")
+                        .then(response => {
+                            const data = response.data;
+                            const saleData = data.sale_data;
+
+                            const morrisData = saleData.map(item => ({
+                                label: 'Sales per day',
+                                x: item.date,
+                                y: item.total_sale
+                            }));
+
+                            // Initialize Morris line chart
+                            new Morris.Line({
+                                element: 'lineChart',
+                                data: morrisData,
+                                xkey: 'x',
+                                ykeys: ['y'],
+                                labels: ['Sale'],
+                                parseTime: false, 
+                                lineColors: ['#00ff00']
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Error rendering line chart:", error);
+                        });
+                },
+                signOut() {
+                    console.log("signOut method called");
+                    try {
+                        localStorage.removeItem('access_token');
+                    } catch (error) {
+                        console.error('Error removing access token:', error);
+                    }
+                    window.location.href = 'login.html';
+                }
+
+            },
+            mounted() {
+                this.renderChart()
+                this.renderlineChart();
+                this.fetchExchangeRate();
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>

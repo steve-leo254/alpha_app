@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Signup</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="/static/css/style.css">
+
+</head>
+
+<body class="img js-fullheight" style="background-image: url(/static/images/bg.jpg);">
+    <div id="app">
+        
+        <section class="ftco-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 text-center mb-5">
+                        <h2 class="heading-section">Sign_Up</h2>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="login-wrap p-0">
+                            <h3 class="mb-4 text-center">Open an account</h3>
+                            <form @submit.prevent="registerUser" class="signin-form">
+                                <div class="form-group">
+                                    <input type="email" class="form-control" placeholder="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="name" name="username"
+                                        placeholder="Username" v-model="registerForm.username">
+                                </div>
+                                <div class="form-group">
+                                    <input id="password-field" type="password" name="password" id="password"
+                                        class="form-control" placeholder="Password" v-model="registerForm.password" required>
+                                    <!-- <span toggle="#password-field"
+                                        class="fa fa-fw fa-eye field-icon toggle-password"></span> -->
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" @click="registerUser"
+                                        class="form-control btn btn-primary submit px-3">Sign Up</button>
+                                </div>
+                                <div class="form-group d-md-flex">
+                                    <div class="w-50">
+                                        <label class="checkbox-wrap checkbox-primary">Remember Me
+                                            <input type="checkbox" checked>
+                                            <span class="checkmark"></span>
+                                        </label>
+                                    </div>
+
+                                </div>
+                            </form>
+                            <p class="w-100 text-center">&mdash; have an account Sign-Up With &mdash;</p>
+                            <div class="social d-flex text-center">
+                                <a href="login.html" class="px-2 py-2 mr-md-1 rounded"><span
+                                        class="ion-logo-facebook mr-2"></span>
+                                    Log in</a>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Morris.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Chart.js -->
+
+
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    registerForm: {
+                        username: '',
+                        password: ''
+                    },
+                };
+            },
+            methods: {
+                registerUser() {
+                    axios.post('http://127.0.0.1:5000/register', this.registerForm)
+                        .then(response => {
+                            this.message = response.data.result;
+                            window.location.href = 'login.html';
+
+                        })
+                        .catch(error => {
+                            this.message = error.response.data.error;
+                        });
+                }
+                
+            },
+            created() {
+                this.registerUser()
+
+
+            }
+        });
+        app.mount('#app');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>

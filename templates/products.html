@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <!-- Morris.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="">Shopify </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- Navbar items -->
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="sales.html">Sales</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <div id="app">
+        <div class="container">
+
+            <!-- Button trigger modal -->
+            <div id="addproduct">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    Add products
+                </button>
+            </div>
+
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog">
+                    <div v-if="flashMessage" class="alert alert-success" role="alert">
+                        {{ flashMessage }}
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">product details</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form @submit.prevent="add_product">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">product Name</label>
+                                    <input type="text" class="form-control" id="name" aria-describedby="emailHelp"
+                                        v-model="product_name" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="cost" class="form-label">cost</label>
+                                    <input type="number" class="form-control" id="cost" v-model="product_cost" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Price</label>
+                                    <input type="number" class="form-control" id="price" v-model="product_price" />
+                                </div>
+                                <button type="submit" class="btn btn-primary">ADD</button>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table" id="productsTable">
+                <thead>
+                    <tr>
+                        <th scope="col">id</th>
+                        <th scope="col">name</th>
+                        <th scope="col">cost</th>
+                        <th scope="col">price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="prod in prods" :key="prod.id">
+                        <td>{{ prod.id }}</td>
+                        <td>{{ prod.name }}</td>
+                        <td>{{ prod.cost }}</td>
+                        <td>{{ prod.price }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Morris.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        Vue.createApp({
+            data() {
+                return {
+                    prods: [],
+                    product_name: null,
+                    product_cost: null,
+                    product_price: null,
+                    username: null,
+                    flashMessage: null
+                }
+            },
+            methods: {
+                fetch_products() {
+                    const token = localStorage.getItem('access_token');
+                    console.log("token", token)
+                    axios.get("http://127.0.0.1:5000/products", {
+                        headers: {
+                            Authorization: `${token}`
+                        }
+
+                    })
+                        .then(response => {
+                            this.prods = response.data;
+                            console.log(response.headers);
+
+                            $(document).ready(function () {
+                                $('#productsTable').DataTable();
+                            });
+                        })
+                        .catch(error => {
+                            console.error("Error fetching data:", error);
+                        });
+                },
+
+                add_product() {
+                    const productName = this.product_name; // the product name temporarily
+                    const token = localStorage.getItem('access_token');
+
+                    axios.post("http://127.0.0.1:5000/products",
+                        {
+                            name: this.product_name,
+                            cost: this.product_cost,
+                            price: this.product_price,
+                        },
+                        {
+                            headers: {
+                                Authorization: `${token}`
+                            }
+                        },)
+                        .then(response => {
+                            this.product_name = '';
+                            this.product_cost = '';
+                            this.product_price = '';
+                            this.fetch_products();
+                            this.showFlashMessage(`${productName} added successfully!`); // Use the temporary variable
+                        })
+                        .catch(error => {
+                            console.error("Error adding data:", error);
+                            this.showFlashMessage('Error adding product!');
+                        });
+                },
+
+                close_modal() {
+                    $('#exampleModal').modal('hide');
+                },
+                showFlashMessage(message) {
+                    this.flashMessage = message;
+                    setTimeout(() => {
+                        this.flashMessage = null;
+                    }, 3000);
+                }
+            },
+            mounted() {
+                const token = localStorage.getItem("access_token");
+                if (token) {
+                    // Parse the token to extract expiration timestamp
+                    const tokenData = JSON.parse(atob(token.split(".")[1])); // Decoding base64 URL
+
+                    // Check if the token has expired
+                    const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+                    if (tokenData.exp < currentTimestamp) {
+                        // Token has expired, redirect
+                        window.location.href = 'login.html'
+                    }
+                    else {
+                        this.fetch_products();
+                    }
+                } else {
+                    window.location.href = 'login.html'
+
+                }
+            }
+        }).mount('#app');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous">
+        </script>
+
+</body>
+
+</html>

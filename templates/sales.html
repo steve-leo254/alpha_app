@@ -7,23 +7,64 @@
     <title>Bootstrap demo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
 </head>
 
 <body>
+
+    
+
     <div id="app">
-        <table class="table">
-            <!-- Button trigger modal -->
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                make sale
-            </button>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="">Shopify </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- Navbar items -->
+                    </ul>
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="dashboard.html">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="products.html">Products</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="sales.html">Sales</a>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" @click="signOut">Logout</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+
+        <div class="container">
+            <div id="makeSaleBtn">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                    Make sale
+                </button>
+            </div>
 
             <!-- Modal -->
             <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
                 aria-labelledby="staticBackdropLabel" aria-hidden="true">
                 <div class="modal-dialog">
+                    <!-- Flash message -->
+                    <div v-if="flashMessage" class="alert alert-success" role="alert">
+                        {{ flashMessage }}
+                    </div>
                     <div class="modal-content">
+
                         <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="staticBackdropLabel">sale details</h1>
+                            <h1 class="modal-title fs-5" id="staticBackdropLabel">Sale Details</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -32,121 +73,156 @@
                                 <option v-for="product in products" :value="product.id">{{ product.name }}</option>
                             </select>
                             <input type="number" v-model="quantity" placeholder="Quantity" class="form-control">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button type="button" class="btn btn-primary" @click="make_sale">Make Sale</button>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
                 </div>
             </div>
-    </div>
-    <thead>
-        <tr>
-            <th scope="col">id</th>
-            <th scope="col">pid</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">created at</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr v-for="sale in sales" :key="sale.id">
-            <td>{{sale.id}}</td>
-            <td>{{sale.pid}}</td>
-            <td>{{sale.quantity}}</td>
-            <td>{{sale.created_at}}</td>
-        </tr>
 
-    </tbody>
-    </table>
+
+
+            <table id="salesTable" class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Product ID</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="sale in sales" :key="sale.id">
+                        <td>{{ sale.id }}</td>
+                        <td>{{ sale.pid }}</td>
+                        <td>{{ sale.quantity }}</td>
+                        <td>{{ sale.created_at }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Morris.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+    <!-- Vue.js -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Axios -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
 
         Vue.createApp({
             data() {
-
-                let loading = false
-                let sales = null
-                let products = null
-                let selected_Product_Id = null
-                let quantity = 0
-
                 return {
-                    loading,
-                    sales,
-                    selected_Product_Id,
-                    quantity,
-                    products
+                    sales: [],
+                    selected_Product_Id: null,
+                    quantity: 0,
+                    products: [],
+                    flashMessage: null // Variable to store the flash message
                 }
             },
             methods: {
-
                 fetch_sales() {
-                    this.loading = true
-                    axios.get("http://127.0.0.1:5000/sales")
+                    const token = localStorage.getItem('access_token');
+
+                    axios.get("http://127.0.0.1:5000/sales"
+                        ,
+                        {
+                            headers: {
+                                Authorization: `${token}`
+                            }
+
+                        })
                         .then((response) => {
-                            console.log("Response from API", response);
                             this.sales = response.data;
-                            console.log("This is my sales:", this.sales);
-                            this.loading = false;
+                            $(document).ready(function () {
+                                $('#salesTable').DataTable();
+                            });
                         })
                         .catch((error) => {
                             console.error("Error fetching data:", error);
-                            this.loading = false;
                         });
                 },
                 fetch_products() {
-                    this.loading = true
-                    axios.get("http://127.0.0.1:5000/products")
+                    const token = localStorage.getItem('access_token');
+                    console.log(token)
+
+                    axios.get("http://127.0.0.1:5000/products",
+                        {
+                            headers: {
+                                Authorization: `${token}`
+                            }
+
+                        })
                         .then((response) => {
-                            console.log("Response from API", response);
                             this.products = response.data;
-                            console.log("This is my products:", this.products);
-                            this.loading = false;
                         })
                         .catch((error) => {
                             console.error("Error fetching data:", error);
-                            this.loading = false;
                         });
                 },
                 make_sale() {
-                    axios.post("http://127.0.0.1:5000/sales",
-                        {
-                            pid: this.selected_Product_Id,
-                            quantity: this.quantity
-                        })
+                    const token = localStorage.getItem('access_token');
+
+                    axios.post("http://127.0.0.1:5000/sales", {
+                        pid: this.selected_Product_Id,
+                        quantity: this.quantity
+                    })
                         .then((response) => {
-                            console.log("Response from API", response);
-                            this.fetch_sales()
-                            this.close_modal()
+                            this.fetch_sales();
+                            this.flashMessage = 'sale made successfully!'; // Set flash message
+                            setTimeout(() => { // Clear flash message after 3 seconds
+                                this.flashMessage = null;
+                            }, 3000);
                         })
                         .catch((error) => {
                             console.error("Error adding data:", error);
-                            this.loading = false;
                         });
-
-
                 },
-                
+                signOut() {
+                    console.log("signOut method called");
+                    try {
+                        localStorage.removeItem('access_token');
+                    } catch (error) {
+                        console.error('Error removing access token:', error);
+                    }
+                    window.location.href = 'login.html';
+                },
                 close_modal() {
                     $('#staticBackdrop').modal('hide');
                 }
-
+                
             },
-            created() {
-                this.fetch_sales()
-                this.fetch_products()
-
-
-
+            mounted() {
+                const token = localStorage.getItem("access_token");
+                if (token) {
+                    const tokenData = JSON.parse(atob(token.split(".")[1]));
+                    const currentTimestamp = Math.floor(Date.now() / 1000);
+                    if (tokenData.exp < currentTimestamp) {
+                        window.location.href = 'login.html'
+                    }
+                    else {
+                        this.fetch_products();
+                        this.fetch_sales();
+                    }
+                } else {
+                    window.location.href = 'login.html'
+                }
             }
         }).mount('#app')
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+        integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous">
         </script>
 </body>
 
